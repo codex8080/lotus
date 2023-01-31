@@ -258,7 +258,7 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 
 	///
 
-	createParams := func(r int) []byte {
+	makeParams := func(r int) []byte {
 		funcSignature := "exec1(uint256)"
 		entryPoint := kit.CalcFuncSignature(funcSignature)
 
@@ -274,7 +274,7 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 		return func(t *testing.T) {
 			t.Logf("running with %d recursive calls", r)
 
-			params := createParams(r)
+			params := makeParams(r)
 			gaslimit, err := client.EthEstimateGas(ctx, ethtypes.EthCall{
 				From: &ethAddr,
 				To:   &contractAddr,

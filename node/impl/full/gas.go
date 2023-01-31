@@ -306,7 +306,7 @@ func gasEstimateGasLimit(
 
 	res, _, ts, err := gasEstimateCallWithGas(ctx, cstore, smgr, mpool, &msg, currTs)
 	if err != nil {
-		return -1, err
+		return -1, xerrors.Errorf("gas estimation failed: %w", err)
 	}
 
 	if res.MsgRct.ExitCode == exitcode.SysErrOutOfGas {

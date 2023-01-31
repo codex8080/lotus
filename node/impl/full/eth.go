@@ -808,7 +808,7 @@ func (a *EthModule) EthEstimateGas(ctx context.Context, tx ethtypes.EthCall) (et
 	ts := a.Chain.GetHeaviestTipSet()
 	msg, err = a.GasAPI.GasEstimateMessageGas(ctx, msg, nil, ts.Key())
 	if err != nil {
-		return ethtypes.EthUint64(0), err
+		return ethtypes.EthUint64(0), xerrors.Errorf("failed to estimate gas: %w", err)
 	}
 
 	expectedGas, err := ethGasSearch(ctx, a.Chain, a.Stmgr, a.Mpool, msg, ts)
@@ -821,7 +821,7 @@ func (a *EthModule) EthEstimateGas(ctx context.Context, tx ethtypes.EthCall) (et
 
 // gasSearch does an exponential search to find a gas value to execute the
 // message with. It first finds a high gas limit that allows the message to execute
-// by doubling the previous gas limit until it successeds then does a binary
+// by doubling the previous gas limit until it succeeds then does a binary
 // search till it gets within a range of 1%
 func gasSearch(
 	ctx context.Context,
@@ -835,15 +835,15 @@ func gasSearch(
 	high := msg.GasLimit
 	low := msg.GasLimit
 
-	canSuccessed := func(limit int64) (bool, error) {
+	canSucceed := func(limit int64) (bool, error) {
 		msg.GasLimit = limit
 
 		res, err := smgr.CallWithGas(ctx, &msg, priorMsgs, ts)
 		if err != nil {
-			return false, err
+			return false, xerrors.Errorf("CallWithGas failed: %w", err)
 		}
 
-		if res.MsgRct.ExitCode == exitcode.Ok {
+		if res.MsgRct.ExitCode.IsSuccess() {
 			return true, nil
 		}
 
@@ -851,9 +851,9 @@ func gasSearch(
 	}
 
 	for {
-		ok, err := canSuccessed(high)
+		ok, err := canSucceed(high)
 		if err != nil {
-			return -1, err
+			return -1, xerrors.Errorf("searching for high gas limit failed: %w", err)
 		}
 		if ok {
 			break
@@ -868,12 +868,12 @@ func gasSearch(
 		}
 	}
 
-	checkThreshold := (high / 100)
+	checkThreshold := high / 100
 	for (high - low) > checkThreshold {
 		median := (low + high) / 2
-		ok, err := canSuccessed(median)
+		ok, err := canSucceed(median)
 		if err != nil {
-			return -1, err
+			return -1, xerrors.Errorf("searching for optimal gas limit failed: %w", err)
 		}
 
 		if ok {
@@ -882,7 +882,7 @@ func gasSearch(
 			low = median
 		}
 
-		checkThreshold = (median / 100)
+		checkThreshold = median / 100
 	}
 
 	return high, nil
@@ -918,17 +918,17 @@ func ethGasSearch(
 
 	res, priorMsgs, ts, err := gasEstimateCallWithGas(ctx, cstore, smgr, mpool, &msg, currTs)
 	if err != nil {
-		return -1, err
+		return -1, xerrors.Errorf("gas estimation failed: %w", err)
 	}
 
-	if res.MsgRct.ExitCode == exitcode.Ok {
+	if res.MsgRct.ExitCode.IsSuccess() {
 		return msg.GasLimit, nil
 	}
 
 	if traceContainsExitCode(res.ExecutionTrace, exitcode.SysErrOutOfGas) {
 		ret, err := gasSearch(ctx, smgr, &msg, priorMsgs, ts)
 		if err != nil {
-			return -1, err
+			return -1, xerrors.Errorf("gas estimation search failed: %w", err)
 		}
 
 		ret = int64(float64(ret) * mpool.GetConfig().GasLimitOverestimation)
