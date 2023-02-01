@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
-	"os"
 	"testing"
 	"time"
 
@@ -227,36 +226,14 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 
 	//install contract Actor
 	filenameActor := "contracts/ExternalRecursiveCallSimple.hex"
-	contractHex, err := os.ReadFile(filenameActor)
-	require.NoError(t, err)
+	_, actorAddr := client.EVM().DeployContractFromFilename(ctx, filenameActor)
 
-	contract, err := hex.DecodeString(string(contractHex))
+	contractAddr, err := ethtypes.EthAddressFromFilecoinAddress(actorAddr)
 	require.NoError(t, err)
 
 	// create a new Ethereum account
-	key, ethAddr, deployer := client.EVM().NewAccount()
-
-	// send some funds to the f410 address
-	kit.SendFunds(ctx, t, client, deployer, types.FromFil(1000))
-
-	// deploy the contract
-	tx, err := deployContractTx(ctx, client, ethAddr, contract)
-	require.NoError(t, err)
-
-	client.EVM().SignTransaction(tx, key.PrivateKey)
-	hash := client.EVM().SubmitTransaction(ctx, tx)
-
-	receipt, err := waitForEthTxReceipt(ctx, client, hash)
-	require.NoError(t, err)
-	require.NotNil(t, receipt)
-
-	// Success.
-	require.EqualValues(t, ethtypes.EthUint64(0x1), receipt.Status)
-
-	// Get contract address.
-	contractAddr := client.EVM().ComputeContractAddress(ethAddr, 0)
-
-	///
+	key, ethAddr, ethFilAddr := client.EVM().NewAccount()
+	kit.SendFunds(ctx, t, client, ethFilAddr, types.FromFil(1000))
 
 	makeParams := func(r int) []byte {
 		funcSignature := "exec1(uint256)"
@@ -288,10 +265,10 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 			maxPriorityFeePerGas, err := client.EthMaxPriorityFeePerGas(ctx)
 			require.NoError(t, err)
 
-			nonce, err := client.MpoolGetNonce(ctx, deployer)
+			nonce, err := client.MpoolGetNonce(ctx, ethFilAddr)
 			require.NoError(t, err)
 
-			tx = &ethtypes.EthTxArgs{
+			tx := &ethtypes.EthTxArgs{
 				ChainID:              build.Eip155ChainId,
 				To:                   &contractAddr,
 				Value:                big.Zero(),
@@ -308,7 +285,13 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 			client.EVM().SignTransaction(tx, key.PrivateKey)
 			hash := client.EVM().SubmitTransaction(ctx, tx)
 
-			receipt, err := waitForEthTxReceipt(ctx, client, hash)
+			smsg, err := tx.ToSignedMessage()
+			require.NoError(t, err)
+
+			_, err = client.StateWaitMsg(ctx, smsg.Cid(), 0, 0, false)
+			require.NoError(t, err)
+
+			receipt, err := client.EthGetTransactionReceipt(ctx, hash)
 			require.NoError(t, err)
 			require.NotNil(t, receipt)
 
@@ -323,7 +306,7 @@ func TestFEVMRecursiveActorCallEstimate(t *testing.T) {
 	t.Run("n=1", testN(1))
 	t.Run("n=2", testN(2))
 	t.Run("n=3", testN(3))
-	t.Run("n=5", testN(4))
+	t.Run("n=4", testN(4))
 	t.Run("n=5", testN(5))
 	t.Run("n=10", testN(10))
 	t.Run("n=20", testN(20))
