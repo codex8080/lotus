@@ -249,6 +249,10 @@ func (m *GasModule) GasEstimateGasLimit(ctx context.Context, msgIn *types.Messag
 	return gasEstimateGasLimit(ctx, m.Chain, m.Stmgr, m.Mpool, msgIn, ts)
 }
 
+// gasEstimateCallWithGas invokes a message "msgIn" on the earliest available tipset with pending
+// messages in the message pool. The function returns the result of the message invocation, the
+// pending messages, the tipset used for the invocation, and an error if occurred.
+// The returned information can be used to make subsequent calls to CallWithGas with the same parameters.
 func gasEstimateCallWithGas(
 	ctx context.Context,
 	cstore *store.ChainStore,
