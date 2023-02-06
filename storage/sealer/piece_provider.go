@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"os"
+	"path"
 
 	"github.com/ipfs/go-cid"
 	"golang.org/x/xerrors"
@@ -11,6 +13,7 @@ import (
 	"github.com/filecoin-project/dagstore/mount"
 	"github.com/filecoin-project/go-state-types/abi"
 
+	meta_car "github.com/FogMeta/meta-lib/module/ipfs"
 	"github.com/filecoin-project/lotus/storage/paths"
 	"github.com/filecoin-project/lotus/storage/sealer/fr32"
 	"github.com/filecoin-project/lotus/storage/sealer/storiface"
@@ -141,6 +144,30 @@ func (p *pieceProvider) tryReadUnsealedPiece(ctx context.Context, pc cid.Cid, se
 	return pr, err
 }
 
+func (p *pieceProvider) tryReadUnsealedCar(ctx context.Context, carPath string, carRootCid cid.Cid, size uint64) (mount.Reader, error) {
+
+	// TODO: check car root cid and pc
+	// Get Car Root and List Car
+	carFile := path.Join(carPath, carRootCid.String()+".car")
+	findCid, err := meta_car.GetCarRoot(carFile)
+	log.Debugf("%s root CID  is: %s", carFile, findCid)
+
+	//TODO: check root cid
+	if carRootCid.String() != findCid {
+		log.Infof("Find CAR's Root CID not Equal: %s != %s", findCid, carRootCid.String())
+		return nil, xerrors.Errorf("Find CAR's  Root CID not Equal: %s != %s", findCid, carRootCid.String())
+	}
+
+	//TODO: check size
+
+	f, err := os.Open(carFile)
+	if err != nil {
+		return nil, xerrors.Errorf("Open CAR file error: %w", err)
+	}
+
+	return f, nil
+}
+
 type funcCloser func() error
 
 func (f funcCloser) Close() error {
@@ -156,6 +183,20 @@ var _ io.Closer = funcCloser(nil)
 // the returned boolean parameter will be set to true.
 // If we have an existing unsealed file containing the given piece, the returned boolean will be set to false.
 func (p *pieceProvider) ReadPiece(ctx context.Context, sector storiface.SectorRef, pieceOffset storiface.UnpaddedByteIndex, size abi.UnpaddedPieceSize, ticket abi.SealRandomness, unsealed cid.Cid) (mount.Reader, bool, error) {
+
+	log.Debugf("try to read unseal car file, sector=%+v, pieceOffset=%d, size=%d, unsealed=%s", sector, pieceOffset, size, unsealed.String())
+	//r, err := p.tryReadUnsealedCar(ctx, unsealed, sector, size)
+	// ONLY FOR TEST
+	localCarPath := "/tmp/test/"
+	carRootCid, _ := cid.Parse("Qmes9ovR7pbHUCszHn8q3xnYHxkbTgKyyEiXK4U5z1Gp49")
+	r, err := p.tryReadUnsealedCar(ctx, localCarPath, carRootCid, uint64(size))
+
+	if err == nil {
+		log.Debugf("###### read car file instead of.######")
+		return r, false, nil
+	}
+	log.Debugf("###### read original piece. ######")
+
 	if err := pieceOffset.Valid(); err != nil {
 		return nil, false, xerrors.Errorf("pieceOffset is not valid: %w", err)
 	}
@@ -163,7 +204,7 @@ func (p *pieceProvider) ReadPiece(ctx context.Context, sector storiface.SectorRe
 		return nil, false, xerrors.Errorf("size is not a valid piece size: %w", err)
 	}
 
-	r, err := p.tryReadUnsealedPiece(ctx, unsealed, sector, pieceOffset, size)
+	r, err = p.tryReadUnsealedPiece(ctx, unsealed, sector, pieceOffset, size)
 
 	if xerrors.Is(err, storiface.ErrSectorNotFound) {
 		log.Debugf("no unsealed sector file with unsealed piece, sector=%+v, pieceOffset=%d, size=%d", sector, pieceOffset, size)

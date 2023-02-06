@@ -8,6 +8,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.0
 	github.com/BurntSushi/toml v1.1.0
 	github.com/DataDog/zstd v1.4.5
+	github.com/FogMeta/meta-lib v0.0.0-20230117092946-651b945b5be7
 	github.com/GeertJohan/go.rice v1.0.3
 	github.com/Gurpartap/async v0.0.0-20180927173644-4f7f499dd9ee
 	github.com/Kubuxu/imtui v0.0.0-20210401140320-41663d68d0fa
@@ -101,12 +102,12 @@ require (
 	github.com/ipfs/go-metrics-interface v0.0.1
 	github.com/ipfs/go-metrics-prometheus v0.0.2
 	github.com/ipfs/go-unixfs v0.4.0
-	github.com/ipfs/go-unixfsnode v1.4.0
+	github.com/ipfs/go-unixfsnode v1.5.0
 	github.com/ipfs/interface-go-ipfs-core v0.7.0
-	github.com/ipld/go-car v0.4.0
-	github.com/ipld/go-car/v2 v2.5.0
+	github.com/ipld/go-car v0.5.0
+	github.com/ipld/go-car/v2 v2.5.1
 	github.com/ipld/go-codec-dagpb v1.5.0
-	github.com/ipld/go-ipld-prime v0.18.0
+	github.com/ipld/go-ipld-prime v0.19.0
 	github.com/ipld/go-ipld-selector-text-lite v0.0.1
 	github.com/ipni/index-provider v0.10.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -131,9 +132,9 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.3.1
 	github.com/multiformats/go-multibase v0.1.1
 	github.com/multiformats/go-multihash v0.2.1
-	github.com/multiformats/go-varint v0.0.6
+	github.com/multiformats/go-varint v0.0.7
 	github.com/open-rpc/meta-schema v0.0.0-20201029221707-1b72ef2ea333
-	github.com/polydawn/refmt v0.0.0-20201211092308-30ac6d18308e
+	github.com/polydawn/refmt v0.89.0
 	github.com/prometheus/client_golang v1.13.0
 	github.com/raulk/clock v1.1.0
 	github.com/raulk/go-watchdog v1.3.0
@@ -153,13 +154,13 @@ require (
 	go.uber.org/fx v1.15.0
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.23.0
-	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
-	golang.org/x/exp v0.0.0-20220916125017-b168a2c6b86b
-	golang.org/x/net v0.0.0-20220920183852-bf014ff85ad5
+	golang.org/x/crypto v0.1.0
+	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15
+	golang.org/x/net v0.1.0
 	golang.org/x/sync v0.0.0-20220907140024-f12130a52804
-	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8
+	golang.org/x/sys v0.1.0
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
-	golang.org/x/tools v0.1.12
+	golang.org/x/tools v0.2.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gotest.tools v2.2.0+incompatible
@@ -170,7 +171,6 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/Stebalien/go-bitfield v0.0.1 // indirect
 	github.com/akavel/rsrc v0.8.0 // indirect
 	github.com/alecthomas/units v0.0.0-20210927113745-59d0afb8317a // indirect
 	github.com/armon/go-metrics v0.3.9 // indirect
@@ -292,7 +292,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
 	github.com/multiformats/go-multiaddr-fmt v0.1.0 // indirect
-	github.com/multiformats/go-multicodec v0.6.0 // indirect
+	github.com/multiformats/go-multicodec v0.7.0 // indirect
 	github.com/multiformats/go-multistream v0.3.3 // indirect
 	github.com/nikkolasg/hexjson v0.0.0-20181101101858-78e39397e00c // indirect
 	github.com/nkovacs/streamquote v1.0.0 // indirect
@@ -301,6 +301,7 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
+	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/petar/GoLLRB v0.0.0-20210522233825-ae3b015fd3e9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -333,9 +334,9 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/dig v1.12.0 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/mod v0.6.0 // indirect
+	golang.org/x/term v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20210917145530-b395a37504d4 // indirect
 	google.golang.org/grpc v1.45.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
