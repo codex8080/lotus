@@ -187,7 +187,11 @@ func (p *pieceProvider) ReadPiece(ctx context.Context, sector storiface.SectorRe
 	log.Debugf("try to read unseal car file, sector=%+v, pieceOffset=%d, size=%d, unsealed=%s", sector, pieceOffset, size, unsealed.String())
 	//r, err := p.tryReadUnsealedCar(ctx, unsealed, sector, size)
 	// ONLY FOR TEST
-	localCarPath := "/tmp/test/"
+	localCarPath := "/tmp/tasks/"
+	carDir := os.Getenv("LOTUS_MINER_CAR_DIR")
+	if carDir != "" {
+		localCarPath = carDir
+	}
 	carRootCid, _ := cid.Parse("Qmes9ovR7pbHUCszHn8q3xnYHxkbTgKyyEiXK4U5z1Gp49")
 	r, err := p.tryReadUnsealedCar(ctx, localCarPath, carRootCid, uint64(size))
 
